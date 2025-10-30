@@ -1,429 +1,336 @@
+import React, { useState, useEffect } from 'react';
+import { Truck, Mail, Phone, Building2, MapPin, Plus, Edit2, Trash2, Package } from 'lucide-react';
+import { 
+  getSuppliers, 
+  createSupplier, 
+  updateSupplier, 
+  deleteSupplier,
+  type Supplier 
+} from '../services/supplierService';
 
+export default function Suppliers() {
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    company: '',
+    address: '',
+    productType: ''
+  });
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Supplier, UserRole } from '../types';
-import { Table } from './ui/Table';
-import { Button } from './ui/Button';
-import { Modal } from './ui/Modal';
-
-interface SuppliersProps {
-  suppliers: Supplier[];
-  setSuppliers: React.Dispatch<React.SetStateAction<Supplier[]>>;
-  userRole: UserRole;
-}
-
-const newSupplierInitialState: Omit<Supplier, 'id'> = {
-  name: '',
-  contactPerson: '',
-  email: '',
-  phone: '',
-  productSupplied: '',
-};
-
-const DownloadIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-  </svg>
-);
-
-const UploadIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-  </svg>
-);
-
-const TrashIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-    </svg>
-);
-
-const Suppliers: React.FC<SuppliersProps> = ({ suppliers, setSuppliers, userRole }) => {
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [deletingSupplier, setDeletingSupplier] = useState<Supplier | null>(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [newSupplier, setNewSupplier] = useState<Omit<Supplier, 'id'>>(newSupplierInitialState);
-  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
-  const [isSecondResetModalOpen, setIsSecondResetModalOpen] = useState(false);
-  const [resetConfirmationInput, setResetConfirmationInput] = useState('');
-
-  const [importError, setImportError] = useState<string | null>(null);
-  const [importSuccess, setImportSuccess] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
+  // Carica fornitori da Firestore
   useEffect(() => {
-    if (importError || importSuccess) {
-      const timer = setTimeout(() => {
-        setImportError(null);
-        setImportSuccess(null);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [importError, importSuccess]);
+    loadSuppliers();
+  }, []);
 
-  const columns = [
-    { header: 'Nome Azienda', accessor: 'name' },
-    { header: 'Contatto', accessor: 'contactPerson' },
-    { header: 'Email', accessor: 'email' },
-    { header: 'Telefono', accessor: 'phone' },
-    { header: 'Prodotto Fornito', accessor: 'productSupplied' },
-  ];
-
-  const displayData = [...suppliers]
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .map(supplier => ({
-    ...supplier,
-    email: (
-      <a href={`mailto:${supplier.email}`} className="text-brand-green hover:underline hover:text-brand-green-light transition-colors duration-200">
-        {supplier.email}
-      </a>
-    ),
-  }));
-
-  const handleEdit = (supplier: { id: string }) => {
-    const originalSupplier = suppliers.find(s => s.id === supplier.id);
-    if (originalSupplier) {
-      setEditingSupplier(originalSupplier);
-      setIsEditModalOpen(true);
+  const loadSuppliers = async () => {
+    try {
+      setLoading(true);
+      const data = await getSuppliers();
+      setSuppliers(data);
+    } catch (error) {
+      console.error('Errore caricamento fornitori:', error);
+      alert('Errore nel caricamento dei fornitori');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleCloseEditModal = () => {
-    setIsEditModalOpen(false);
-    setEditingSupplier(null);
-  };
-
-  const handleSaveChanges = () => {
-    if (!editingSupplier) return;
-    setSuppliers(suppliers.map(s => s.id === editingSupplier.id ? editingSupplier : s));
-    handleCloseEditModal();
-  };
-
-  const handleEditFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!editingSupplier) return;
-    const { name, value } = e.target;
-    setEditingSupplier({ ...editingSupplier, [name]: value });
-  };
-
-  const handleDelete = (supplier: { id: string }) => {
-    const originalSupplier = suppliers.find(s => s.id === supplier.id);
-    if (originalSupplier) {
-      setDeletingSupplier(originalSupplier);
-      setIsDeleteModalOpen(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingId) {
+        // Aggiorna fornitore esistente
+        await updateSupplier(editingId, formData);
+      } else {
+        // Crea nuovo fornitore
+        await createSupplier(formData);
+      }
+      await loadSuppliers();
+      resetForm();
+    } catch (error) {
+      console.error('Errore salvataggio fornitore:', error);
+      alert('Errore nel salvataggio del fornitore');
     }
   };
 
-  const handleCloseDeleteModal = () => {
-    setIsDeleteModalOpen(false);
-    setDeletingSupplier(null);
+  const handleEdit = (supplier: Supplier) => {
+    setEditingId(supplier.id || null);
+    setFormData({
+      name: supplier.name,
+      email: supplier.email,
+      phone: supplier.phone,
+      company: supplier.company || '',
+      address: supplier.address || '',
+      productType: supplier.productType || ''
+    });
+    setShowForm(true);
   };
 
-  const handleConfirmDelete = () => {
-    if (!deletingSupplier) return;
-    setSuppliers(suppliers.filter(s => s.id !== deletingSupplier.id));
-    handleCloseDeleteModal();
-  };
-  
-  // --- Add Logic ---
-  const handleOpenAddModal = () => {
-    setNewSupplier(newSupplierInitialState);
-    setIsAddModalOpen(true);
-  };
-
-  const handleCloseAddModal = () => {
-    setIsAddModalOpen(false);
-  };
-  
-  const handleAddNewSupplier = () => {
-    const supplierToAdd: Supplier = {
-      id: `supp_${new Date().getTime()}`,
-      ...newSupplier,
-    };
-    setSuppliers([supplierToAdd, ...suppliers]);
-    handleCloseAddModal();
-  };
-
-  const handleNewSupplierFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setNewSupplier({ ...newSupplier, [name]: value });
-  };
-  
-  // --- Export/Import Logic ---
-  const escapeCsv = (val: any): string => {
-      if (val === undefined || val === null) return '';
-      let str = String(val);
-      if (str.includes('"') || str.includes(',') || str.includes('\n') || str.includes('\r')) {
-        str = '"' + str.replace(/"/g, '""') + '"';
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Sei sicuro di voler eliminare questo fornitore?')) {
+      try {
+        await deleteSupplier(id);
+        await loadSuppliers();
+      } catch (error) {
+        console.error('Errore eliminazione fornitore:', error);
+        alert('Errore nell\'eliminazione del fornitore');
       }
-      return str;
-    };
-
-  const handleExportCsv = () => {
-    const headers = ['ID', 'Nome Azienda', 'Contatto', 'Email', 'Telefono', 'Prodotto Fornito'];
-    const keys: (keyof Supplier)[] = ['id', 'name', 'contactPerson', 'email', 'phone', 'productSupplied'];
-
-    const csvContent = [
-      headers.join(','),
-      ...suppliers.map(supplier => keys.map(key => escapeCsv(supplier[key])).join(','))
-    ].join('\n');
-
-    const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    const date = new Date().toISOString().split('T')[0];
-    link.setAttribute('href', url);
-    link.setAttribute('download', `fornitori_${date}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    }
   };
 
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      company: '',
+      address: '',
+      productType: ''
+    });
+    setEditingId(null);
+    setShowForm(false);
   };
 
-  const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setImportError(null);
-    setImportSuccess(null);
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
-      const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-      if (lines.length < 1) {
-        setImportError("Il file CSV è vuoto.");
-        return;
-      }
-      
-      const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-      const expectedHeaders = ['ID', 'Nome Azienda', 'Contatto', 'Email', 'Telefono', 'Prodotto Fornito'];
-
-      if (JSON.stringify(headers) !== JSON.stringify(expectedHeaders)) {
-        setImportError("File non compatibile. Le intestazioni del CSV non corrispondono al formato richiesto per i fornitori.");
-        return;
-      }
-
-      const importedSuppliers: Supplier[] = lines.slice(1).map(line => {
-        const values = line.split(',');
-        return {
-          id: values[0],
-          name: values[1],
-          contactPerson: values[2],
-          email: values[3],
-          phone: values[4],
-          productSupplied: values[5],
-        };
-      });
-
-      setSuppliers(prevSuppliers => {
-        const suppliersMap = new Map(prevSuppliers.map(s => [s.id, s]));
-        importedSuppliers.forEach(s => suppliersMap.set(s.id, s));
-        return Array.from(suppliersMap.values());
-      });
-      
-      setImportSuccess(`${importedSuppliers.length} fornitori importati/aggiornati con successo!`);
-    };
-
-    reader.onerror = () => {
-      setImportError("Errore durante la lettura del file.");
-    };
-    
-    reader.readAsText(file);
-    event.target.value = '';
-  };
-  
-  // --- Reset Logic ---
-  const handleProceedToFinalReset = () => {
-    setIsResetModalOpen(false);
-    setIsSecondResetModalOpen(true);
-  };
-
-  const handleConfirmReset = () => {
-    setSuppliers([]);
-    setIsSecondResetModalOpen(false);
-    setResetConfirmationInput('');
-  };
-
-  const handleCloseSecondResetModal = () => {
-    setIsSecondResetModalOpen(false);
-    setResetConfirmationInput('');
-  };
-
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-500">Caricamento...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-gray-700 hidden lg:block">Fornitori</h2>
-        {userRole === UserRole.Admin && (
-          <div className="flex items-center space-x-2 flex-wrap gap-2 justify-end">
-              <Button onClick={handleOpenAddModal}>Aggiungi Fornitore</Button>
-              <input type="file" ref={fileInputRef} onChange={handleFileImport} accept=".csv" className="hidden" />
-              <Button onClick={handleImportClick} className="bg-gray-500 hover:bg-gray-600 text-white flex items-center space-x-2">
-                  <UploadIcon className="w-5 h-5" />
-                  <span>Importa CSV</span>
-              </Button>
-              <Button onClick={handleExportCsv} className="bg-brand-gold hover:bg-brand-gold-light flex items-center space-x-2">
-                  <DownloadIcon className="w-5 h-5" />
-                  <span>Esporta CSV</span>
-              </Button>
-              <Button onClick={() => setIsResetModalOpen(true)} className="bg-red-600 hover:bg-red-700 text-white flex items-center space-x-2">
-                    <TrashIcon className="w-5 h-5" />
-                    <span>Resetta Fornitori</span>
-                </Button>
-          </div>
-        )}
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Fornitori</h1>
+          <p className="text-gray-600">Gestisci i tuoi fornitori</p>
+        </div>
+        <button
+          onClick={() => setShowForm(true)}
+          className="flex items-center space-x-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700"
+        >
+          <Plus className="h-5 w-5" />
+          <span>Nuovo Fornitore</span>
+        </button>
       </div>
-       
-      {importSuccess && <div className="p-3 bg-green-100 border border-green-400 text-green-700 rounded-md text-sm">{importSuccess}</div>}
-      {importError && <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-sm">{importError}</div>}
-      
-      <Table columns={columns} data={displayData} onEdit={handleEdit} onDelete={handleDelete} userRole={userRole} />
 
-      {/* Add Modal */}
-      <Modal
-        isOpen={isAddModalOpen}
-        onClose={handleCloseAddModal}
-        title="Aggiungi Nuovo Fornitore"
-        footer={
-          <>
-            <Button onClick={handleCloseAddModal} className="bg-gray-300 hover:bg-gray-400 text-gray-800">Annulla</Button>
-            <Button onClick={handleAddNewSupplier}>Aggiungi Fornitore</Button>
-          </>
-        }
-      >
-        <form className="space-y-4">
-            <div>
-              <label htmlFor="name-add" className="block text-sm font-medium text-gray-900">Nome Azienda</label>
-              <input type="text" name="name" id="name-add" value={newSupplier.name} onChange={handleNewSupplierFormChange} className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-sm focus:border-brand-green focus:ring-1 focus:ring-brand-green sm:text-sm" />
+      {showForm && (
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-4">
+            {editingId ? 'Modifica Fornitore' : 'Nuovo Fornitore'}
+          </h2>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nome *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email *
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Telefono *
+                </label>
+                <input
+                  type="tel"
+                  required
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Azienda
+                </label>
+                <input
+                  type="text"
+                  value={formData.company}
+                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tipo Prodotto
+                </label>
+                <input
+                  type="text"
+                  value={formData.productType}
+                  onChange={(e) => setFormData({ ...formData, productType: e.target.value })}
+                  placeholder="es. Olive, Bottiglie, Etichette"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
             </div>
             <div>
-              <label htmlFor="contactPerson-add" className="block text-sm font-medium text-gray-900">Contatto</label>
-              <input type="text" name="contactPerson" id="contactPerson-add" value={newSupplier.contactPerson} onChange={handleNewSupplierFormChange} className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-sm focus:border-brand-green focus:ring-1 focus:ring-brand-green sm:text-sm" />
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Indirizzo
+              </label>
+              <input
+                type="text"
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+              />
             </div>
-            <div>
-              <label htmlFor="email-add" className="block text-sm font-medium text-gray-900">Email</label>
-              <input type="email" name="email" id="email-add" value={newSupplier.email} onChange={handleNewSupplierFormChange} className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-sm focus:border-brand-green focus:ring-1 focus:ring-brand-green sm:text-sm" />
-            </div>
-            <div>
-              <label htmlFor="phone-add" className="block text-sm font-medium text-gray-900">Telefono</label>
-              <input type="text" name="phone" id="phone-add" value={newSupplier.phone} onChange={handleNewSupplierFormChange} className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-sm focus:border-brand-green focus:ring-1 focus:ring-brand-green sm:text-sm" />
-            </div>
-            <div>
-              <label htmlFor="productSupplied-add" className="block text-sm font-medium text-gray-900">Prodotto Fornito</label>
-              <input type="text" name="productSupplied" id="productSupplied-add" value={newSupplier.productSupplied} onChange={handleNewSupplierFormChange} className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-sm focus:border-brand-green focus:ring-1 focus:ring-brand-green sm:text-sm" />
+            <div className="flex space-x-3">
+              <button
+                type="submit"
+                className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700"
+              >
+                {editingId ? 'Aggiorna' : 'Salva'}
+              </button>
+              <button
+                type="button"
+                onClick={resetForm}
+                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400"
+              >
+                Annulla
+              </button>
             </div>
           </form>
-      </Modal>
-
-      {/* Edit Modal */}
-      {editingSupplier && (
-        <Modal
-          isOpen={isEditModalOpen}
-          onClose={handleCloseEditModal}
-          title={`Modifica ${editingSupplier.name}`}
-          footer={
-            <>
-              <Button onClick={handleCloseEditModal} className="bg-gray-300 hover:bg-gray-400 text-gray-800">Annulla</Button>
-              <Button onClick={handleSaveChanges}>Salva Modifiche</Button>
-            </>
-          }
-        >
-          <form className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-900">Nome Azienda</label>
-              <input type="text" name="name" id="name" value={editingSupplier.name} onChange={handleEditFormChange} className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-sm focus:border-brand-green focus:ring-1 focus:ring-brand-green sm:text-sm" />
-            </div>
-            <div>
-              <label htmlFor="contactPerson" className="block text-sm font-medium text-gray-900">Contatto</label>
-              <input type="text" name="contactPerson" id="contactPerson" value={editingSupplier.contactPerson} onChange={handleEditFormChange} className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-sm focus:border-brand-green focus:ring-1 focus:ring-brand-green sm:text-sm" />
-            </div>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-900">Email</label>
-              <input type="email" name="email" id="email" value={editingSupplier.email} onChange={handleEditFormChange} className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-sm focus:border-brand-green focus:ring-1 focus:ring-brand-green sm:text-sm" />
-            </div>
-             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-900">Telefono</label>
-              <input type="text" name="phone" id="phone" value={editingSupplier.phone} onChange={handleEditFormChange} className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-sm focus:border-brand-green focus:ring-1 focus:ring-brand-green sm:text-sm" />
-            </div>
-            <div>
-              <label htmlFor="productSupplied" className="block text-sm font-medium text-gray-900">Prodotto Fornito</label>
-              <input type="text" name="productSupplied" id="productSupplied" value={editingSupplier.productSupplied} onChange={handleEditFormChange} className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-sm focus:border-brand-green focus:ring-1 focus:ring-brand-green sm:text-sm" />
-            </div>
-          </form>
-        </Modal>
+        </div>
       )}
 
-      {deletingSupplier && (
-        <Modal
-          isOpen={isDeleteModalOpen}
-          onClose={handleCloseDeleteModal}
-          title="Conferma Eliminazione"
-          footer={
-            <>
-              <Button onClick={handleCloseDeleteModal} className="bg-gray-300 hover:bg-gray-400 text-gray-800">Annulla</Button>
-              <Button onClick={handleConfirmDelete} className="bg-red-600 hover:bg-red-700">Elimina</Button>
-            </>
-          }
-        >
-          <p>Sei sicuro di voler eliminare il fornitore "{deletingSupplier.name}"?</p>
-          <p className="text-sm text-gray-500 mt-2">Questa azione non può essere annullata.</p>
-        </Modal>
-      )}
-
-      {/* Reset Modal - Step 1 */}
-      <Modal
-          isOpen={isResetModalOpen}
-          onClose={() => setIsResetModalOpen(false)}
-          title="Conferma Reset Fornitori"
-          footer={
-            <>
-              <Button onClick={() => setIsResetModalOpen(false)} className="bg-gray-300 hover:bg-gray-400 text-gray-800">Annulla</Button>
-              <Button onClick={handleProceedToFinalReset} className="bg-red-600 hover:bg-red-700">Procedi</Button>
-            </>
-          }
-        >
-          <p>Sei sicuro di voler eliminare tutti i dati dalla sezione "Fornitori"?</p>
-          <p className="text-sm text-gray-500 mt-2">Questa azione è irreversibile e cancellerà permanentemente tutti i fornitori.</p>
-        </Modal>
-
-      {/* Reset Modal - Step 2 */}
-      <Modal
-        isOpen={isSecondResetModalOpen}
-        onClose={handleCloseSecondResetModal}
-        title="Conferma Definitiva"
-        footer={
-          <>
-            <Button onClick={handleCloseSecondResetModal} className="bg-gray-300 hover:bg-gray-400 text-gray-800">Annulla</Button>
-            <Button
-              onClick={handleConfirmReset}
-              className="bg-red-800 hover:bg-red-900 disabled:bg-red-300 disabled:cursor-not-allowed"
-              disabled={resetConfirmationInput !== 'ELIMINA'}
-            >
-              Elimina Definitivamente
-            </Button>
-          </>
-        }
-      >
-        <p className="font-semibold text-gray-800">Questa è l'ultima verifica. L'azione non potrà essere annullata.</p>
-        <p className="text-sm text-gray-600 mt-2 mb-4">
-          Per confermare l'eliminazione di tutti i fornitori, scrivi "ELIMINA" nel campo qui sotto.
-        </p>
-        <input
-          type="text"
-          value={resetConfirmationInput}
-          onChange={(e) => setResetConfirmationInput(e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 sm:text-sm"
-          placeholder="ELIMINA"
-        />
-      </Modal>
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Fornitore
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Contatti
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Azienda
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Prodotto
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Indirizzo
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Azioni
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {suppliers.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                    Nessun fornitore trovato. Aggiungi il primo fornitore!
+                  </td>
+                </tr>
+              ) : (
+                suppliers.map((supplier) => (
+                  <tr key={supplier.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
+                          <Truck className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">
+                            {supplier.name}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900 flex items-center">
+                        <Mail className="h-4 w-4 mr-2 text-gray-400" />
+                        {supplier.email}
+                      </div>
+                      <div className="text-sm text-gray-500 flex items-center">
+                        <Phone className="h-4 w-4 mr-2 text-gray-400" />
+                        {supplier.phone}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900 flex items-center">
+                        {supplier.company ? (
+                          <>
+                            <Building2 className="h-4 w-4 mr-2 text-gray-400" />
+                            {supplier.company}
+                          </>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900 flex items-center">
+                        {supplier.productType ? (
+                          <>
+                            <Package className="h-4 w-4 mr-2 text-gray-400" />
+                            {supplier.productType}
+                          </>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-900 flex items-center">
+                        {supplier.address ? (
+                          <>
+                            <MapPin className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0" />
+                            <span className="truncate max-w-xs">{supplier.address}</span>
+                          </>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button
+                        onClick={() => handleEdit(supplier)}
+                        className="text-blue-600 hover:text-blue-900 mr-3"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => supplier.id && handleDelete(supplier.id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
-};
-
-export default Suppliers;
+}
