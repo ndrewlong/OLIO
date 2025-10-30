@@ -13,7 +13,8 @@
     "react-dom": "^19.2.0",
     "firebase": "^10.7.1",
     "lucide-react": "^0.263.1",
-    "recharts": "^3.3.0"
+    "recharts": "^3.3.0",
+    "react-is": "^18.2.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
