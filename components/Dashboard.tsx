@@ -35,29 +35,21 @@ export default function Dashboard() {
       title: 'Clienti Totali',
       value: loading ? '...' : customerCount,
       icon: <Users className="h-6 w-6" />,
-      trend: '+12%',
-      trendUp: true,
     },
     {
       title: 'Prodotti',
       value: '0',
       icon: <Package className="h-6 w-6" />,
-      trend: '+8%',
-      trendUp: true,
     },
     {
       title: 'Vendite Mensili',
       value: '€0',
       icon: <TrendingUp className="h-6 w-6" />,
-      trend: '+15%',
-      trendUp: true,
     },
     {
       title: 'Fatturato',
       value: '€0',
       icon: <DollarSign className="h-6 w-6" />,
-      trend: '+23%',
-      trendUp: true,
     },
   ];
 
@@ -80,15 +72,6 @@ export default function Dashboard() {
                   {stat.title}
                 </p>
                 <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                {stat.trend && (
-                  <p
-                    className={`text-sm mt-2 ${
-                      stat.trendUp ? 'text-green-600' : 'text-red-600'
-                    }`}
-                  >
-                    {stat.trend} rispetto al mese scorso
-                  </p>
-                )}
               </div>
               <div className="ml-4 p-3 bg-emerald-100 rounded-lg text-emerald-600">
                 {stat.icon}
