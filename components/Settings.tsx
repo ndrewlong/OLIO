@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, User, Bell, Palette, Shield, Save } from 'lucide-react';
+import { Building2, User, Bell, Shield, Save } from 'lucide-react';
 import { 
   getSettings, 
   updateCompanySettings, 
@@ -26,8 +26,7 @@ export default function Settings() {
     language: 'it',
     currency: 'EUR',
     emailNotifications: true,
-    pushNotifications: false,
-    theme: 'light'
+    pushNotifications: false
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -308,27 +307,6 @@ export default function Settings() {
                       Notifiche Push
                     </span>
                   </label>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <Palette className="h-5 w-5 mr-2 text-emerald-600" />
-                  Aspetto
-                </h3>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tema
-                  </label>
-                  <select
-                    value={preferencesData.theme}
-                    onChange={(e) => setPreferencesData({ ...preferencesData, theme: e.target.value as any })}
-                    className="w-full md:w-1/2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
-                  >
-                    <option value="light">Chiaro</option>
-                    <option value="dark">Scuro</option>
-                    <option value="system">Sistema</option>
-                  </select>
                 </div>
               </div>
 
