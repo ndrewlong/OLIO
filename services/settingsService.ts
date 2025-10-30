@@ -20,7 +20,6 @@ export interface UserPreferences {
   currency: string;
   emailNotifications: boolean;
   pushNotifications: boolean;
-  theme: 'light' | 'dark' | 'system';
 }
 
 export interface Settings {
@@ -46,8 +45,7 @@ const defaultSettings: Settings = {
     language: 'it',
     currency: 'EUR',
     emailNotifications: true,
-    pushNotifications: false,
-    theme: 'light'
+    pushNotifications: false
   }
 };
 
