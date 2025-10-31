@@ -6,7 +6,7 @@ import {
   onAuthStateChanged,
   User
 } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, collection, getDocs, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export const auth = getAuth();
@@ -93,6 +93,44 @@ export const getCurrentUserData = async (uid: string): Promise<UserData | null> 
   } catch (error) {
     console.error('Errore recupero dati utente:', error);
     return null;
+  }
+};
+
+// Ottenere tutti gli utenti (solo Admin)
+export const getAllUsers = async (): Promise<UserData[]> => {
+  try {
+    const querySnapshot = await getDocs(collection(db, 'users'));
+    return querySnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        ...data,
+        createdAt: data.createdAt?.toDate?.() || new Date()
+      } as UserData;
+    });
+  } catch (error) {
+    console.error('Errore recupero utenti:', error);
+    throw error;
+  }
+};
+
+// Aggiornare ruolo utente (solo Admin)
+export const updateUserRole = async (uid: string, role: UserRole): Promise<void> => {
+  try {
+    const userRef = doc(db, 'users', uid);
+    await updateDoc(userRef, { role });
+  } catch (error) {
+    console.error('Errore aggiornamento ruolo:', error);
+    throw error;
+  }
+};
+
+// Eliminare utente (solo Admin) - elimina solo da Firestore
+export const deleteUserData = async (uid: string): Promise<void> => {
+  try {
+    await deleteDoc(doc(db, 'users', uid));
+  } catch (error) {
+    console.error('Errore eliminazione utente:', error);
+    throw error;
   }
 };
 
