@@ -1,27 +1,29 @@
 import React, { useState } from 'react';
-import { Home, Users, Package, DollarSign, Settings as SettingsIcon, Truck, LogOut } from 'lucide-react';
+import { Home, Users as UsersIcon, Package, DollarSign, Settings as SettingsIcon, Truck, LogOut, UserCog } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import Customers from './components/Customers';
 import Suppliers from './components/Suppliers';
 import Products from './components/Products';
 import Transactions from './components/Transactions';
 import Settings from './components/Settings';
+import Users from './components/Users';
 import Login from './components/Login';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
-type Page = 'dashboard' | 'customers' | 'suppliers' | 'products' | 'transactions' | 'settings';
+type Page = 'dashboard' | 'customers' | 'suppliers' | 'products' | 'transactions' | 'settings' | 'users';
 
 function AppContent() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const { currentUser, userData, loading, logout } = useAuth();
 
   const menuItems = [
-    { id: 'dashboard' as Page, label: 'Dashboard', icon: Home },
-    { id: 'customers' as Page, label: 'Clienti', icon: Users },
-    { id: 'suppliers' as Page, label: 'Fornitori', icon: Truck },
-    { id: 'products' as Page, label: 'Prodotti', icon: Package },
-    { id: 'transactions' as Page, label: 'Transazioni', icon: DollarSign },
-    { id: 'settings' as Page, label: 'Impostazioni', icon: SettingsIcon },
+    { id: 'dashboard' as Page, label: 'Dashboard', icon: Home, roles: ['admin', 'editor', 'viewer'] },
+    { id: 'customers' as Page, label: 'Clienti', icon: UsersIcon, roles: ['admin', 'editor', 'viewer'] },
+    { id: 'suppliers' as Page, label: 'Fornitori', icon: Truck, roles: ['admin', 'editor', 'viewer'] },
+    { id: 'products' as Page, label: 'Prodotti', icon: Package, roles: ['admin', 'editor', 'viewer'] },
+    { id: 'transactions' as Page, label: 'Transazioni', icon: DollarSign, roles: ['admin', 'editor', 'viewer'] },
+    { id: 'users' as Page, label: 'Utenti', icon: UserCog, roles: ['admin'] },
+    { id: 'settings' as Page, label: 'Impostazioni', icon: SettingsIcon, roles: ['admin'] },
   ];
 
   const handleLogout = async () => {
@@ -54,12 +56,19 @@ function AppContent() {
         return <Products />;
       case 'transactions':
         return <Transactions />;
+      case 'users':
+        return <Users />;
       case 'settings':
         return <Settings />;
       default:
         return <Dashboard />;
     }
   };
+
+  // Filtra menu items in base al ruolo
+  const visibleMenuItems = menuItems.filter(item => 
+    item.roles.includes(userData?.role || 'viewer')
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -90,7 +99,7 @@ function AppContent() {
         </div>
 
         <nav className="p-4 space-y-2">
-          {menuItems.map((item) => {
+          {visibleMenuItems.map((item) => {
             const Icon = item.icon;
             return (
               <button
