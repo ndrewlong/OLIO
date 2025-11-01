@@ -3,7 +3,8 @@ import { Users as UsersIcon, Plus, Edit2, Trash2, Shield, UserCheck, Eye } from 
 import { useAuth } from '../contexts/AuthContext';
 import { 
   getAllUsers, 
-  registerUser, 
+  registerUser,
+  loginUser,
   updateUserRole, 
   deleteUserData,
   type UserData,
