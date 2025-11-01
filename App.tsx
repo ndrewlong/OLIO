@@ -53,7 +53,7 @@ function AppContent() {
     }
     return (
       <Login
-        onLoginSuccess={() => {}}
+        onLoginSuccess={() => setCurrentPage('dashboard')}
         onGoToRegister={() => setShowRegister(true)}
       />
     );
