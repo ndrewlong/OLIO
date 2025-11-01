@@ -151,18 +151,9 @@ export default function Users() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestione Utenti</h1>
-          <p className="text-gray-600">Gestisci gli utenti e i loro ruoli</p>
-        </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center space-x-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700"
-        >
-          <Plus className="h-5 w-5" />
-          <span>Nuovo Utente</span>
-        </button>
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Gestione Utenti</h1>
+        <p className="text-gray-600">Gestisci i ruoli degli utenti registrati</p>
       </div>
 
       {showForm && (
