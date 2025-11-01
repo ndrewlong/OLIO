@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Plus, Edit2, Trash2, Tag, Box } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import { 
   getProducts, 
   createProduct, 
@@ -9,6 +10,9 @@ import {
 } from '../services/productService';
 
 export default function Products() {
+  const { userData } = useAuth();
+  const canEdit = userData?.role === 'admin' || userData?.role === 'editor';
+  
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -131,16 +135,18 @@ export default function Products() {
           <h1 className="text-2xl font-bold text-gray-900">Prodotti</h1>
           <p className="text-gray-600">Gestisci il catalogo prodotti</p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center space-x-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700"
-        >
-          <Plus className="h-5 w-5" />
-          <span>Nuovo Prodotto</span>
-        </button>
+        {canEdit && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center space-x-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700"
+          >
+            <Plus className="h-5 w-5" />
+            <span>Nuovo Prodotto</span>
+          </button>
+        )}
       </div>
 
-      {showForm && (
+      {showForm && canEdit && (
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4">
             {editingId ? 'Modifica Prodotto' : 'Nuovo Prodotto'}
@@ -253,7 +259,7 @@ export default function Products() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.length === 0 ? (
           <div className="col-span-full bg-white rounded-lg shadow-md p-8 text-center text-gray-500">
-            Nessun prodotto trovato. Aggiungi il primo prodotto!
+            Nessun prodotto trovato. {canEdit && 'Aggiungi il primo prodotto!'}
           </div>
         ) : (
           products.map((product) => (
@@ -302,22 +308,24 @@ export default function Products() {
                 </div>
               </div>
 
-              <div className="flex space-x-2 pt-4 border-t border-gray-200">
-                <button
-                  onClick={() => handleEdit(product)}
-                  className="flex-1 flex items-center justify-center space-x-1 bg-emerald-50 text-emerald-600 px-3 py-2 rounded-lg hover:bg-emerald-100 transition-colors"
-                >
-                  <Edit2 className="h-4 w-4" />
-                  <span className="text-sm">Modifica</span>
-                </button>
-                <button
-                  onClick={() => product.id && handleDelete(product.id)}
-                  className="flex-1 flex items-center justify-center space-x-1 bg-red-50 text-red-600 px-3 py-2 rounded-lg hover:bg-red-100 transition-colors"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  <span className="text-sm">Elimina</span>
-                </button>
-              </div>
+              {canEdit && (
+                <div className="flex space-x-2 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => handleEdit(product)}
+                    className="flex-1 flex items-center justify-center space-x-1 bg-emerald-50 text-emerald-600 px-3 py-2 rounded-lg hover:bg-emerald-100 transition-colors"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                    <span className="text-sm">Modifica</span>
+                  </button>
+                  <button
+                    onClick={() => product.id && handleDelete(product.id)}
+                    className="flex-1 flex items-center justify-center space-x-1 bg-red-50 text-red-600 px-3 py-2 rounded-lg hover:bg-red-100 transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span className="text-sm">Elimina</span>
+                  </button>
+                </div>
+              )}
             </div>
           ))
         )}
