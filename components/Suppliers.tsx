@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Truck, Mail, Phone, Building2, MapPin, Plus, Edit2, Trash2, Package } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import { 
   getSuppliers, 
   createSupplier, 
@@ -9,6 +10,9 @@ import {
 } from '../services/supplierService';
 
 export default function Suppliers() {
+  const { userData } = useAuth();
+  const canEdit = userData?.role === 'admin' || userData?.role === 'editor';
+  
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -111,16 +115,18 @@ export default function Suppliers() {
           <h1 className="text-2xl font-bold text-gray-900">Fornitori</h1>
           <p className="text-gray-600">Gestisci i tuoi fornitori</p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center space-x-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700"
-        >
-          <Plus className="h-5 w-5" />
-          <span>Nuovo Fornitore</span>
-        </button>
+        {canEdit && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center space-x-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700"
+          >
+            <Plus className="h-5 w-5" />
+            <span>Nuovo Fornitore</span>
+          </button>
+        )}
       </div>
 
-      {showForm && (
+      {showForm && canEdit && (
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4">
             {editingId ? 'Modifica Fornitore' : 'Nuovo Fornitore'}
@@ -237,16 +243,18 @@ export default function Suppliers() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Indirizzo
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Azioni
-                </th>
+                {canEdit && (
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Azioni
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {suppliers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
-                    Nessun fornitore trovato. Aggiungi il primo fornitore!
+                  <td colSpan={canEdit ? 6 : 5} className="px-6 py-8 text-center text-gray-500">
+                    Nessun fornitore trovato. {canEdit && 'Aggiungi il primo fornitore!'}
                   </td>
                 </tr>
               ) : (
@@ -310,20 +318,22 @@ export default function Suppliers() {
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => handleEdit(supplier)}
-                        className="text-blue-600 hover:text-blue-900 mr-3"
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => supplier.id && handleDelete(supplier.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </td>
+                    {canEdit && (
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button
+                          onClick={() => handleEdit(supplier)}
+                          className="text-blue-600 hover:text-blue-900 mr-3"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => supplier.id && handleDelete(supplier.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}
