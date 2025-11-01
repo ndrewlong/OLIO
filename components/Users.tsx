@@ -43,41 +43,12 @@ export default function Users() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!editingUser && formData.password.length < 6) {
-      alert('La password deve essere di almeno 6 caratteri');
-      return;
-    }
 
     try {
       if (editingUser) {
         // Aggiorna solo il ruolo
         await updateUserRole(editingUser.uid, formData.role);
         alert('Ruolo aggiornato con successo!');
-      } else {
-        // Salva le credenziali admin correnti
-        const adminEmail = userData?.email;
-        const adminPassword = prompt('Inserisci la tua password admin per continuare:');
-        
-        if (!adminPassword) {
-          alert('Password admin richiesta per creare nuovi utenti');
-          return;
-        }
-        
-        // Crea nuovo utente
-        await registerUser(
-          formData.email,
-          formData.password,
-          formData.role,
-          formData.displayName || undefined
-        );
-        
-        // Re-login come admin
-        if (adminEmail) {
-          await loginUser(adminEmail, adminPassword);
-        }
-        
-        alert('Utente creato con successo!');
       }
       
       await loadUsers();
