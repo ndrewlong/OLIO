@@ -22,14 +22,28 @@ export interface UserPreferences {
   pushNotifications: boolean;
 }
 
+export interface Configurations {
+  productCategories: string[];
+  productUnits: string[];
+  paymentMethods: string[];
+}
+
 export interface Settings {
   company: CompanySettings;
   preferences: UserPreferences;
+  configurations: Configurations;
   updatedAt?: Date;
 }
 
 const SETTINGS_DOC_ID = 'app-settings';
 const COLLECTION_NAME = 'settings';
+
+// Configurazioni di default
+const defaultConfigurations: Configurations = {
+  productCategories: ['Olio', 'Olive', 'Conserve', 'Vino', 'Altro'],
+  productUnits: ['Lt', 'Kg', 'Pz', 'Conf'],
+  paymentMethods: ['Contanti', 'Carta', 'Bonifico', 'Assegno']
+};
 
 // Impostazioni di default
 const defaultSettings: Settings = {
@@ -46,7 +60,8 @@ const defaultSettings: Settings = {
     currency: 'EUR',
     emailNotifications: true,
     pushNotifications: false
-  }
+  },
+  configurations: defaultConfigurations
 };
 
 // Leggere le impostazioni
@@ -59,10 +74,11 @@ export const getSettings = async (): Promise<Settings> => {
       const data = docSnap.data();
       return {
         ...data,
+        // Assicurati che le configurazioni esistano sempre
+        configurations: data.configurations || defaultConfigurations,
         updatedAt: data.updatedAt?.toDate()
       } as Settings;
     } else {
-      // Se non esistono impostazioni, restituisci quelle di default
       return defaultSettings;
     }
   } catch (error) {
@@ -109,6 +125,20 @@ export const updateUserPreferences = async (preferences: UserPreferences): Promi
     });
   } catch (error) {
     console.error('Errore aggiornamento preferenze:', error);
+    throw error;
+  }
+};
+
+// Aggiornare solo le configurazioni
+export const updateConfigurations = async (configurations: Configurations): Promise<void> => {
+  try {
+    const currentSettings = await getSettings();
+    await saveSettings({
+      ...currentSettings,
+      configurations
+    });
+  } catch (error) {
+    console.error('Errore aggiornamento configurazioni:', error);
     throw error;
   }
 };
