@@ -8,12 +8,14 @@ import Transactions from './components/Transactions';
 import Settings from './components/Settings';
 import Users from './components/Users';
 import Login from './components/Login';
+import Register from './components/Register';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 type Page = 'dashboard' | 'customers' | 'suppliers' | 'products' | 'transactions' | 'settings' | 'users';
 
 function AppContent() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
+  const [showRegister, setShowRegister] = useState(false);
   const { currentUser, userData, loading, logout } = useAuth();
 
   const menuItems = [
@@ -41,7 +43,20 @@ function AppContent() {
   }
 
   if (!currentUser) {
-    return <Login onLoginSuccess={() => {}} />;
+    if (showRegister) {
+      return (
+        <Register
+          onRegisterSuccess={() => setShowRegister(false)}
+          onBackToLogin={() => setShowRegister(false)}
+        />
+      );
+    }
+    return (
+      <Login
+        onLoginSuccess={() => {}}
+        onGoToRegister={() => setShowRegister(true)}
+      />
+    );
   }
 
   const renderPage = () => {
