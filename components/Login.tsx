@@ -4,9 +4,10 @@ import { loginUser } from '../services/authService';
 
 interface LoginProps {
   onLoginSuccess: () => void;
+  onGoToRegister: () => void;
 }
 
-export default function Login({ onLoginSuccess }: LoginProps) {
+export default function Login({ onLoginSuccess, onGoToRegister }: LoginProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -87,6 +88,16 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             {loading ? 'Accesso in corso...' : 'Accedi'}
           </button>
         </form>
+
+        <div className="mt-6 text-center">
+          <button
+            type="button"
+            onClick={onGoToRegister}
+            className="text-sm text-emerald-600 hover:text-emerald-700"
+          >
+            Non hai un account? Registrati
+          </button>
+        </div>
 
         <div className="mt-6 text-center text-sm text-gray-600">
           <p>Credenziali di test:</p>
