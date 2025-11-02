@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, User, Bell, Shield, Save } from 'lucide-react';
+import { Building2, User, Bell, Shield, Save, Settings as SettingsIcon, Plus, X } from 'lucide-react';
 import { 
   getSettings, 
   updateCompanySettings, 
   updateUserPreferences,
+  updateConfigurations,
   type CompanySettings,
-  type UserPreferences 
+  type UserPreferences,
+  type Configurations
 } from '../services/settingsService';
 
 export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'company' | 'preferences' | 'security'>('company');
+  const [activeTab, setActiveTab] = useState<'company' | 'preferences' | 'configurations' | 'security'>('company');
   
   const [companyData, setCompanyData] = useState<CompanySettings>({
     name: '',
@@ -29,6 +31,16 @@ export default function Settings() {
     pushNotifications: false
   });
 
+  const [configurationsData, setConfigurationsData] = useState<Configurations>({
+    productCategories: [],
+    productUnits: [],
+    paymentMethods: []
+  });
+
+  const [newCategory, setNewCategory] = useState('');
+  const [newUnit, setNewUnit] = useState('');
+  const [newPaymentMethod, setNewPaymentMethod] = useState('');
+
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -45,6 +57,7 @@ export default function Settings() {
       const settings = await getSettings();
       setCompanyData(settings.company);
       setPreferencesData(settings.preferences);
+      setConfigurationsData(settings.configurations);
     } catch (error) {
       console.error('Errore caricamento impostazioni:', error);
       alert('Errore nel caricamento delle impostazioni');
@@ -81,6 +94,70 @@ export default function Settings() {
     }
   };
 
+  const handleSaveConfigurations = async () => {
+    try {
+      setSaving(true);
+      await updateConfigurations(configurationsData);
+      alert('Configurazioni salvate con successo!');
+    } catch (error) {
+      console.error('Errore salvataggio configurazioni:', error);
+      alert('Errore nel salvataggio delle configurazioni');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const addCategory = () => {
+    if (newCategory.trim() && !configurationsData.productCategories.includes(newCategory.trim())) {
+      setConfigurationsData({
+        ...configurationsData,
+        productCategories: [...configurationsData.productCategories, newCategory.trim()]
+      });
+      setNewCategory('');
+    }
+  };
+
+  const removeCategory = (category: string) => {
+    setConfigurationsData({
+      ...configurationsData,
+      productCategories: configurationsData.productCategories.filter(c => c !== category)
+    });
+  };
+
+  const addUnit = () => {
+    if (newUnit.trim() && !configurationsData.productUnits.includes(newUnit.trim())) {
+      setConfigurationsData({
+        ...configurationsData,
+        productUnits: [...configurationsData.productUnits, newUnit.trim()]
+      });
+      setNewUnit('');
+    }
+  };
+
+  const removeUnit = (unit: string) => {
+    setConfigurationsData({
+      ...configurationsData,
+      productUnits: configurationsData.productUnits.filter(u => u !== unit)
+    });
+  };
+
+  const addPaymentMethod = () => {
+    if (newPaymentMethod.trim() && !configurationsData.paymentMethods.includes(newPaymentMethod.trim())) {
+      setConfigurationsData({
+        ...configurationsData,
+        paymentMethods: [...configurationsData.paymentMethods, newPaymentMethod.trim()]
+      });
+      setNewPaymentMethod('');
+    }
+  };
+
+  const removePaymentMethod = (method: string) => {
+    setConfigurationsData({
+      ...configurationsData,
+      paymentMethods: configurationsData.paymentMethods.filter(m => m !== method)
+    });
+  };
+
   const handleChangePassword = (e: React.FormEvent) => {
     e.preventDefault();
     if (passwordData.newPassword !== passwordData.confirmPassword) {
@@ -102,6 +179,7 @@ export default function Settings() {
   const tabs = [
     { id: 'company', label: 'Azienda', icon: <Building2 className="h-5 w-5" /> },
     { id: 'preferences', label: 'Preferenze', icon: <User className="h-5 w-5" /> },
+    { id: 'configurations', label: 'Configurazioni', icon: <SettingsIcon className="h-5 w-5" /> },
     { id: 'security', label: 'Sicurezza', icon: <Shield className="h-5 w-5" /> }
   ];
 
@@ -321,6 +399,149 @@ export default function Settings() {
                 </button>
               </div>
             </form>
+          )}
+
+          {/* Tab Configurazioni */}
+          {activeTab === 'configurations' && (
+            <div className="space-y-6">
+              {/* Categorie Prodotti */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Categorie Prodotti
+                </h3>
+                <div className="flex gap-2 mb-3">
+                  <input
+                    type="text"
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && addCategory()}
+                    placeholder="Nuova categoria"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={addCategory}
+                    className="flex items-center space-x-1 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Aggiungi</span>
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {configurationsData.productCategories.map((category) => (
+                    <span
+                      key={category}
+                      className="inline-flex items-center space-x-1 bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm"
+                    >
+                      <span>{category}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeCategory(category)}
+                        className="text-gray-500 hover:text-red-600"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Unità di Misura */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Unità di Misura
+                </h3>
+                <div className="flex gap-2 mb-3">
+                  <input
+                    type="text"
+                    value={newUnit}
+                    onChange={(e) => setNewUnit(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && addUnit()}
+                    placeholder="Nuova unità (es. Lt, Kg)"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={addUnit}
+                    className="flex items-center space-x-1 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Aggiungi</span>
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {configurationsData.productUnits.map((unit) => (
+                    <span
+                      key={unit}
+                      className="inline-flex items-center space-x-1 bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm"
+                    >
+                      <span>{unit}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeUnit(unit)}
+                        className="text-gray-500 hover:text-red-600"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Metodi di Pagamento */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Metodi di Pagamento
+                </h3>
+                <div className="flex gap-2 mb-3">
+                  <input
+                    type="text"
+                    value={newPaymentMethod}
+                    onChange={(e) => setNewPaymentMethod(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && addPaymentMethod()}
+                    placeholder="Nuovo metodo"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={addPaymentMethod}
+                    className="flex items-center space-x-1 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Aggiungi</span>
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {configurationsData.paymentMethods.map((method) => (
+                    <span
+                      key={method}
+                      className="inline-flex items-center space-x-1 bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm"
+                    >
+                      <span>{method}</span>
+                      <button
+                        type="button"
+                        onClick={() => removePaymentMethod(method)}
+                        className="text-gray-500 hover:text-red-600"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleSaveConfigurations}
+                  disabled={saving}
+                  className="flex items-center space-x-2 bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  <Save className="h-5 w-5" />
+                  <span>{saving ? 'Salvataggio...' : 'Salva Configurazioni'}</span>
+                </button>
+              </div>
+            </div>
           )}
 
           {/* Tab Sicurezza */}
