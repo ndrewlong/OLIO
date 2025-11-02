@@ -10,6 +10,7 @@ import {
   CreditCard
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { getSettings } from '../services/settingsService';
 import { 
   getTransactions, 
   createTransaction, 
@@ -29,6 +30,7 @@ export default function Transactions() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
   const [stats, setStats] = useState({
     income: 0,
     expenses: 0,
@@ -47,6 +49,7 @@ export default function Transactions() {
   useEffect(() => {
     loadTransactions();
     loadStats();
+    loadSettings();
   }, []);
 
   const loadTransactions = async () => {
@@ -72,6 +75,15 @@ export default function Transactions() {
       setStats({ income, expenses, balance });
     } catch (error) {
       console.error('Errore caricamento statistiche:', error);
+    }
+  };
+
+  const loadSettings = async () => {
+    try {
+      const settings = await getSettings();
+      setPaymentMethods(settings.configurations.paymentMethods);
+    } catch (error) {
+      console.error('Errore caricamento impostazioni:', error);
     }
   };
 
@@ -284,10 +296,9 @@ export default function Transactions() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="">Seleziona metodo</option>
-                  <option value="Contanti">Contanti</option>
-                  <option value="Carta">Carta</option>
-                  <option value="Bonifico">Bonifico</option>
-                  <option value="Assegno">Assegno</option>
+                  {paymentMethods.map(method => (
+                    <option key={method} value={method}>{method}</option>
+                  ))}
                 </select>
               </div>
               <div>
