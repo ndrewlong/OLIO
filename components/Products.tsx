@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Plus, Edit2, Trash2, Tag, Box } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { getSettings } from '../services/settingsService';
 import { 
   getProducts, 
   createProduct, 
@@ -17,6 +18,8 @@ export default function Products() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [units, setUnits] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     name: '',
     category: '',
@@ -34,8 +37,13 @@ export default function Products() {
   const loadProducts = async () => {
     try {
       setLoading(true);
-      const data = await getProducts();
-      setProducts(data);
+      const [productsData, settings] = await Promise.all([
+        getProducts(),
+        getSettings()
+      ]);
+      setProducts(productsData);
+      setCategories(settings.configurations.productCategories);
+      setUnits(settings.configurations.productUnits);
     } catch (error) {
       console.error('Errore caricamento prodotti:', error);
       alert('Errore nel caricamento dei prodotti');
@@ -176,11 +184,9 @@ export default function Products() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="">Seleziona categoria</option>
-                  <option value="Olio">Olio</option>
-                  <option value="Olive">Olive</option>
-                  <option value="Conserve">Conserve</option>
-                  <option value="Vino">Vino</option>
-                  <option value="Altro">Altro</option>
+                  {categories.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -219,10 +225,9 @@ export default function Products() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="">Seleziona unità</option>
-                  <option value="Lt">Litri</option>
-                  <option value="Kg">Kilogrammi</option>
-                  <option value="Pz">Pezzi</option>
-                  <option value="Conf">Confezioni</option>
+                  {units.map(unit => (
+                    <option key={unit} value={unit}>{unit}</option>
+                  ))}
                 </select>
               </div>
             </div>
