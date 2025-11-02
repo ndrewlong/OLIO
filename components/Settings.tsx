@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, User, Bell, Shield, Save, Settings as SettingsIcon, Plus, X } from 'lucide-react';
+import { Building2, Shield, Save, Settings as SettingsIcon, Plus, X } from 'lucide-react';
 import { 
   getSettings, 
   updateCompanySettings, 
-  updateUserPreferences,
   updateConfigurations,
   type CompanySettings,
-  type UserPreferences,
   type Configurations
 } from '../services/settingsService';
 
 export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'company' | 'preferences' | 'configurations' | 'security'>('company');
+  const [activeTab, setActiveTab] = useState<'company' | 'configurations' | 'security'>('company');
   
   const [companyData, setCompanyData] = useState<CompanySettings>({
     name: '',
@@ -22,13 +20,6 @@ export default function Settings() {
     address: '',
     vatNumber: '',
     website: ''
-  });
-
-  const [preferencesData, setPreferencesData] = useState<UserPreferences>({
-    language: 'it',
-    currency: 'EUR',
-    emailNotifications: true,
-    pushNotifications: false
   });
 
   const [configurationsData, setConfigurationsData] = useState<Configurations>({
@@ -56,7 +47,6 @@ export default function Settings() {
       setLoading(true);
       const settings = await getSettings();
       setCompanyData(settings.company);
-      setPreferencesData(settings.preferences);
       setConfigurationsData(settings.configurations);
     } catch (error) {
       console.error('Errore caricamento impostazioni:', error);
@@ -75,20 +65,6 @@ export default function Settings() {
     } catch (error) {
       console.error('Errore salvataggio impostazioni azienda:', error);
       alert('Errore nel salvataggio delle impostazioni');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleSavePreferences = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      setSaving(true);
-      await updateUserPreferences(preferencesData);
-      alert('Preferenze salvate con successo!');
-    } catch (error) {
-      console.error('Errore salvataggio preferenze:', error);
-      alert('Errore nel salvataggio delle preferenze');
     } finally {
       setSaving(false);
     }
@@ -178,7 +154,6 @@ export default function Settings() {
 
   const tabs = [
     { id: 'company', label: 'Azienda', icon: <Building2 className="h-5 w-5" /> },
-    { id: 'preferences', label: 'Preferenze', icon: <User className="h-5 w-5" /> },
     { id: 'configurations', label: 'Configurazioni', icon: <SettingsIcon className="h-5 w-5" /> },
     { id: 'security', label: 'Sicurezza', icon: <Shield className="h-5 w-5" /> }
   ];
@@ -311,91 +286,6 @@ export default function Settings() {
                 >
                   <Save className="h-5 w-5" />
                   <span>{saving ? 'Salvataggio...' : 'Salva Modifiche'}</span>
-                </button>
-              </div>
-            </form>
-          )}
-
-          {/* Tab Preferenze */}
-          {activeTab === 'preferences' && (
-            <form onSubmit={handleSavePreferences} className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <User className="h-5 w-5 mr-2 text-emerald-600" />
-                  Preferenze Utente
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Lingua
-                    </label>
-                    <select
-                      value={preferencesData.language}
-                      onChange={(e) => setPreferencesData({ ...preferencesData, language: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
-                    >
-                      <option value="it">Italiano</option>
-                      <option value="en">English</option>
-                      <option value="es">Español</option>
-                      <option value="fr">Français</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Valuta
-                    </label>
-                    <select
-                      value={preferencesData.currency}
-                      onChange={(e) => setPreferencesData({ ...preferencesData, currency: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
-                    >
-                      <option value="EUR">EUR (€)</option>
-                      <option value="USD">USD ($)</option>
-                      <option value="GBP">GBP (£)</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <Bell className="h-5 w-5 mr-2 text-emerald-600" />
-                  Notifiche
-                </h3>
-                <div className="space-y-4">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={preferencesData.emailNotifications}
-                      onChange={(e) => setPreferencesData({ ...preferencesData, emailNotifications: e.target.checked })}
-                      className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
-                    />
-                    <span className="ml-3 text-sm text-gray-700">
-                      Notifiche Email
-                    </span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={preferencesData.pushNotifications}
-                      onChange={(e) => setPreferencesData({ ...preferencesData, pushNotifications: e.target.checked })}
-                      className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
-                    />
-                    <span className="ml-3 text-sm text-gray-700">
-                      Notifiche Push
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="flex items-center space-x-2 bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 disabled:opacity-50"
-                >
-                  <Save className="h-5 w-5" />
-                  <span>{saving ? 'Salvataggio...' : 'Salva Preferenze'}</span>
                 </button>
               </div>
             </form>
