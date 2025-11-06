@@ -100,7 +100,7 @@ export default function Login({ onLoginSuccess, onGoToRegister }: LoginProps) {
         </div>
 
         <div className="mt-6 text-center text-sm text-gray-600">
-          <p>Credenziali di test (Editor):</p>
+          <p>Credenziali di test (Viewer):</p>
           <p className="text-xs mt-1">Email: mariorossi@olio.it</p>
           <p className="text-xs">Password: password123</p>
         </div>
