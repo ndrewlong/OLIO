@@ -1,0 +1,192 @@
+import React, { useState } from 'react';
+import { Home, Users as UsersIcon, Package, DollarSign, Settings as SettingsIcon, Truck, LogOut, UserCog } from 'lucide-react';
+import Dashboard from './components/Dashboard';
+import Customers from './components/Customers';
+import Suppliers from './components/Suppliers';
+import Products from './components/Products';
+import Transactions from './components/Transactions';
+import Settings from './components/Settings';
+import Users from './components/Users';
+import Login from './components/Login';
+import Register from './components/Register';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { APP_CONFIG, getBranding, getMenuItems } from './config';
+
+type Page = 'dashboard' | 'customers' | 'suppliers' | 'products' | 'transactions' | 'settings' | 'users';
+
+// Mappa degli icon components
+const iconMap: Record<string, any> = {
+  Home,
+  UsersIcon,
+  Package,
+  DollarSign,
+  SettingsIcon,
+  Truck,
+  UserCog
+};
+
+function AppContent() {
+  const [currentPage, setCurrentPage] = useState<Page>('dashboard');
+  const [showRegister, setShowRegister] = useState(false);
+  const { currentUser, userData, loading, logout } = useAuth();
+  
+  const branding = getBranding();
+  const menuItems = getMenuItems();
+
+  const handleLogout = async () => {
+    if (window.confirm('Sei sicuro di voler uscire?')) {
+      await logout();
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-500">Caricamento...</div>
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    if (showRegister) {
+      return (
+        <Register
+          onRegisterSuccess={() => setShowRegister(false)}
+          onBackToLogin={() => setShowRegister(false)}
+        />
+      );
+    }
+    return (
+      <Login
+        onLoginSuccess={() => setCurrentPage('dashboard')}
+        onGoToRegister={() => setShowRegister(true)}
+      />
+    );
+  }
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'dashboard':
+        return <Dashboard />;
+      case 'customers':
+        return <Customers />;
+      case 'suppliers':
+        return <Suppliers />;
+      case 'products':
+        return <Products />;
+      case 'transactions':
+        return <Transactions />;
+      case 'users':
+        return <Users />;
+      case 'settings':
+        return <Settings />;
+      default:
+        return <Dashboard />;
+    }
+  };
+
+  // Filtra menu items in base al ruolo
+  const visibleMenuItems = menuItems.filter(item => 
+    item.roles.includes(userData?.role || 'viewer')
+  );
+
+  return (
+    <div className="min-h-screen" style={{ backgroundColor: APP_CONFIG.colors.background.base }}>
+      {/* Sidebar */}
+      <aside className="fixed left-0 top-0 h-full w-64 bg-white shadow-lg z-10">
+        <div className="p-6 border-b border-gray-200">
+          <h1 className="text-2xl font-bold" style={{ color: APP_CONFIG.colors.primary.base }}>
+            {branding.appName}
+          </h1>
+          <p className="text-sm text-gray-600">{branding.appDescription}</p>
+        </div>
+
+        {/* User Info */}
+        <div className="p-4 border-b border-gray-200 bg-gray-50">
+          <div className="flex items-center space-x-3">
+            <div 
+              className="w-10 h-10 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: APP_CONFIG.colors.primary.lightest }}
+            >
+              <span 
+                className="font-semibold"
+                style={{ color: APP_CONFIG.colors.primary.base }}
+              >
+                {userData?.email?.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {userData?.displayName || userData?.email}
+              </p>
+              <p className="text-xs text-gray-500 capitalize">
+                {userData?.role}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <nav className="p-4 space-y-2">
+          {visibleMenuItems.map((item) => {
+            const Icon = iconMap[item.icon];
+            const isActive = currentPage === item.id;
+            
+            return (
+              <button
+                key={item.id}
+                onClick={() => setCurrentPage(item.id as Page)}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors`}
+                style={{
+                  backgroundColor: isActive 
+                    ? APP_CONFIG.colors.primary.lightest 
+                    : 'transparent',
+                  color: isActive 
+                    ? APP_CONFIG.colors.primary.base 
+                    : APP_CONFIG.colors.sidebar.textInactive
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.backgroundColor = APP_CONFIG.colors.sidebar.backgroundHover;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }
+                }}
+              >
+                {Icon && <Icon className="h-5 w-5" />}
+                <span className="font-medium">{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+          >
+            <LogOut className="h-5 w-5" />
+            <span className="font-medium">Esci</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="ml-64 p-8">
+        {renderPage()}
+      </main>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+}
+
+export default App;

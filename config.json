@@ -1,0 +1,88 @@
+{
+  "branding": {
+    "appName": "OLIO",
+    "appNameLong": "Olio della Contrada",
+    "appDescription": "Gestione Business",
+    "businessDescription": "Un'applicazione CRM per gestire le vendite, clienti, fornitori, prodotti e transazioni finanziarie",
+    "favicon": "🫒",
+    "htmlTitle": "CRM facile"
+  },
+  "colors": {
+    "primary": {
+      "name": "brand-green",
+      "base": "#4A6D4D",
+      "light": "#6F8F71",
+      "lighter": "#8FA991",
+      "lightest": "#E8F5E9"
+    },
+    "secondary": {
+      "name": "brand-gold",
+      "base": "#D4AF37",
+      "light": "#EACD6F",
+      "lighter": "#F4E6A8"
+    },
+    "background": {
+      "name": "brand-background",
+      "base": "#F9F9F7"
+    },
+    "sidebar": {
+      "background": "#FFFFFF",
+      "textActive": "#4A6D4D",
+      "backgroundActive": "#E8F5E9",
+      "textInactive": "#4B5563",
+      "backgroundHover": "#F3F4F6"
+    }
+  },
+  "menu": {
+    "items": [
+      {
+        "id": "dashboard",
+        "label": "Dashboard",
+        "icon": "Home",
+        "roles": ["admin", "editor", "viewer"]
+      },
+      {
+        "id": "customers",
+        "label": "Clienti",
+        "icon": "UsersIcon",
+        "roles": ["admin", "editor", "viewer"]
+      },
+      {
+        "id": "suppliers",
+        "label": "Fornitori",
+        "icon": "Truck",
+        "roles": ["admin", "editor", "viewer"]
+      },
+      {
+        "id": "products",
+        "label": "Prodotti",
+        "icon": "Package",
+        "roles": ["admin", "editor", "viewer"]
+      },
+      {
+        "id": "transactions",
+        "label": "Transazioni",
+        "icon": "DollarSign",
+        "roles": ["admin", "editor", "viewer"]
+      },
+      {
+        "id": "users",
+        "label": "Utenti",
+        "icon": "UserCog",
+        "roles": ["admin"]
+      },
+      {
+        "id": "settings",
+        "label": "Impostazioni",
+        "icon": "SettingsIcon",
+        "roles": ["admin"]
+      }
+    ]
+  },
+  "localization": {
+    "language": "it",
+    "currency": "EUR",
+    "currencySymbol": "€",
+    "dateFormat": "DD/MM/YYYY"
+  }
+}
