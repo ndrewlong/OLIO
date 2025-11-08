@@ -28,10 +28,19 @@ export interface Configurations {
   paymentMethods: string[];
 }
 
+export interface BrandingSettings {
+  appName: string;
+  appInitials: string;
+  tagline: string;
+  primaryColor: string;
+  secondaryColor: string;
+}
+
 export interface Settings {
   company: CompanySettings;
   preferences: UserPreferences;
   configurations: Configurations;
+  branding: BrandingSettings;
   updatedAt?: Date;
 }
 
@@ -43,6 +52,15 @@ const defaultConfigurations: Configurations = {
   productCategories: ['Olio', 'Olive', 'Conserve', 'Vino', 'Altro'],
   productUnits: ['Lt', 'Kg', 'Pz', 'Conf'],
   paymentMethods: ['Contanti', 'Carta', 'Bonifico', 'Assegno']
+};
+
+// Branding di default
+const defaultBranding: BrandingSettings = {
+  appName: 'OLIO',
+  appInitials: 'O',
+  tagline: 'Gestione Business',
+  primaryColor: '#059669', // emerald-600
+  secondaryColor: '#10b981'  // emerald-500
 };
 
 // Impostazioni di default
@@ -61,7 +79,8 @@ const defaultSettings: Settings = {
     emailNotifications: true,
     pushNotifications: false
   },
-  configurations: defaultConfigurations
+  configurations: defaultConfigurations,
+  branding: defaultBranding
 };
 
 // Leggere le impostazioni
@@ -74,8 +93,8 @@ export const getSettings = async (): Promise<Settings> => {
       const data = docSnap.data();
       return {
         ...data,
-        // Assicurati che le configurazioni esistano sempre
         configurations: data.configurations || defaultConfigurations,
+        branding: data.branding || defaultBranding,
         updatedAt: data.updatedAt?.toDate()
       } as Settings;
     } else {
@@ -139,6 +158,20 @@ export const updateConfigurations = async (configurations: Configurations): Prom
     });
   } catch (error) {
     console.error('Errore aggiornamento configurazioni:', error);
+    throw error;
+  }
+};
+
+// Aggiornare solo il branding
+export const updateBranding = async (branding: BrandingSettings): Promise<void> => {
+  try {
+    const currentSettings = await getSettings();
+    await saveSettings({
+      ...currentSettings,
+      branding
+    });
+  } catch (error) {
+    console.error('Errore aggiornamento branding:', error);
     throw error;
   }
 };
