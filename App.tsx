@@ -7,6 +7,7 @@ import Products from './components/Products';
 import Transactions from './components/Transactions';
 import Settings from './components/Settings';
 import Users from './components/Users';
+import { BrandingProvider, useBranding } from './contexts/BrandingContext';
 import Login from './components/Login';
 import Register from './components/Register';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -90,8 +91,7 @@ function AppContent() {
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 h-full w-64 bg-white shadow-lg z-10">
         <div className="p-6 border-b border-gray-200">
-          <h1 className="text-2xl font-bold text-emerald-600">OLIO</h1>
-          <p className="text-sm text-gray-600">Gestione Business</p>
+          <BrandingHeader />
         </div>
 
         {/* User Info */}
@@ -144,6 +144,16 @@ function AppContent() {
         </div>
       </aside>
 
+      function BrandingHeader() {
+  const { branding } = useBranding();
+  
+  return (
+    <>
+      <h1 className="text-2xl font-bold text-emerald-600">{branding.appName}</h1>
+      <p className="text-sm text-gray-600">{branding.tagline}</p>
+    </>
+  );
+}
       {/* Main Content */}
       <main className="ml-64 p-8">
         {renderPage()}
@@ -154,9 +164,11 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <BrandingProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </BrandingProvider>
   );
 }
 
