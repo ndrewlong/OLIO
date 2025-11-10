@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, Shield, Save, Settings as SettingsIcon, Plus, X } from 'lucide-react';
+import { Building2, Shield, Save, Settings as SettingsIcon, Plus, X, Palette } from 'lucide-react';
+import { useBranding } from '../contexts/BrandingContext';
 import { 
   getSettings, 
   updateCompanySettings, 
   updateConfigurations,
+  updateBranding,
   type CompanySettings,
-  type Configurations
+  type Configurations,
+  type BrandingSettings
 } from '../services/settingsService';
 
 export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'company' | 'configurations' | 'security'>('company');
+  const [activeTab, setActiveTab] = useState<'company' | 'branding' | 'configurations' | 'security'>('company');
+  const { refreshBranding } = useBranding();
   
   const [companyData, setCompanyData] = useState<CompanySettings>({
     name: '',
@@ -20,6 +24,14 @@ export default function Settings() {
     address: '',
     vatNumber: '',
     website: ''
+  });
+
+  const [brandingData, setBrandingData] = useState<BrandingSettings>({
+    appName: '',
+    appInitials: '',
+    tagline: '',
+    primaryColor: '',
+    secondaryColor: ''
   });
 
   const [configurationsData, setConfigurationsData] = useState<Configurations>({
@@ -47,6 +59,7 @@ export default function Settings() {
       setLoading(true);
       const settings = await getSettings();
       setCompanyData(settings.company);
+      setBrandingData(settings.branding);
       setConfigurationsData(settings.configurations);
     } catch (error) {
       console.error('Errore caricamento impostazioni:', error);
@@ -65,6 +78,21 @@ export default function Settings() {
     } catch (error) {
       console.error('Errore salvataggio impostazioni azienda:', error);
       alert('Errore nel salvataggio delle impostazioni');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveBranding = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setSaving(true);
+      await updateBranding(brandingData);
+      await refreshBranding();
+      alert('Branding aggiornato con successo! Ricarica la pagina per vedere tutte le modifiche.');
+    } catch (error) {
+      console.error('Errore salvataggio branding:', error);
+      alert('Errore nel salvataggio del branding');
     } finally {
       setSaving(false);
     }
@@ -154,6 +182,7 @@ export default function Settings() {
 
   const tabs = [
     { id: 'company', label: 'Azienda', icon: <Building2 className="h-5 w-5" /> },
+    { id: 'branding', label: 'Branding', icon: <Palette className="h-5 w-5" /> },
     { id: 'configurations', label: 'Configurazioni', icon: <SettingsIcon className="h-5 w-5" /> },
     { id: 'security', label: 'Sicurezza', icon: <Shield className="h-5 w-5" /> }
   ];
@@ -286,6 +315,122 @@ export default function Settings() {
                 >
                   <Save className="h-5 w-5" />
                   <span>{saving ? 'Salvataggio...' : 'Salva Modifiche'}</span>
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Tab Branding */}
+          {activeTab === 'branding' && (
+            <form onSubmit={handleSaveBranding} className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <Palette className="h-5 w-5 mr-2 text-emerald-600" />
+                  Personalizzazione Brand
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Nome Applicazione *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={brandingData.appName}
+                      onChange={(e) => setBrandingData({ ...brandingData, appName: e.target.value })}
+                      placeholder="es. OLIO, MyBusiness"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Iniziali/Sigla *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      maxLength={3}
+                      value={brandingData.appInitials}
+                      onChange={(e) => setBrandingData({ ...brandingData, appInitials: e.target.value.toUpperCase() })}
+                      placeholder="es. O, MB"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Max 3 caratteri</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Tagline/Slogan *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={brandingData.tagline}
+                      onChange={(e) => setBrandingData({ ...brandingData, tagline: e.target.value })}
+                      placeholder="es. Gestione Business, Il tuo partner"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Colore Primario *
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="color"
+                        required
+                        value={brandingData.primaryColor}
+                        onChange={(e) => setBrandingData({ ...brandingData, primaryColor: e.target.value })}
+                        className="h-10 w-20 border border-gray-300 rounded-lg cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        required
+                        value={brandingData.primaryColor}
+                        onChange={(e) => setBrandingData({ ...brandingData, primaryColor: e.target.value })}
+                        placeholder="#059669"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Colore Secondario *
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="color"
+                        required
+                        value={brandingData.secondaryColor}
+                        onChange={(e) => setBrandingData({ ...brandingData, secondaryColor: e.target.value })}
+                        className="h-10 w-20 border border-gray-300 rounded-lg cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        required
+                        value={brandingData.secondaryColor}
+                        onChange={(e) => setBrandingData({ ...brandingData, secondaryColor: e.target.value })}
+                        placeholder="#10b981"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    <strong>Anteprima:</strong> Il nome "{brandingData.appName}" e la tagline "{brandingData.tagline}" appariranno nella sidebar. I colori verranno applicati ai pulsanti e agli elementi interattivi.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex items-center space-x-2 bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  <Save className="h-5 w-5" />
+                  <span>{saving ? 'Salvataggio...' : 'Salva Branding'}</span>
                 </button>
               </div>
             </form>
