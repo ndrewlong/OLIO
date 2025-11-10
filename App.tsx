@@ -7,12 +7,23 @@ import Products from './components/Products';
 import Transactions from './components/Transactions';
 import Settings from './components/Settings';
 import Users from './components/Users';
-import { BrandingProvider, useBranding } from './contexts/BrandingContext';
 import Login from './components/Login';
 import Register from './components/Register';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { BrandingProvider, useBranding } from './contexts/BrandingContext';
 
 type Page = 'dashboard' | 'customers' | 'suppliers' | 'products' | 'transactions' | 'settings' | 'users';
+
+function BrandingHeader() {
+  const { branding } = useBranding();
+  
+  return (
+    <>
+      <h1 className="text-2xl font-bold text-emerald-600">{branding.appName}</h1>
+      <p className="text-sm text-gray-600">{branding.tagline}</p>
+    </>
+  );
+}
 
 function AppContent() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -144,16 +155,6 @@ function AppContent() {
         </div>
       </aside>
 
-      function BrandingHeader() {
-  const { branding } = useBranding();
-  
-  return (
-    <>
-      <h1 className="text-2xl font-bold text-emerald-600">{branding.appName}</h1>
-      <p className="text-sm text-gray-600">{branding.tagline}</p>
-    </>
-  );
-}
       {/* Main Content */}
       <main className="ml-64 p-8">
         {renderPage()}
