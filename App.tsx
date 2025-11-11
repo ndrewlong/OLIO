@@ -11,6 +11,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { BrandingProvider, useBranding } from './contexts/BrandingContext';
+import './index.css';
 
 type Page = 'dashboard' | 'customers' | 'suppliers' | 'products' | 'transactions' | 'settings' | 'users';
 
