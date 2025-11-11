@@ -1,0 +1,66 @@
+:root {
+  --color-primary: #059669;
+  --color-primary-hover: #047857;
+  --color-primary-light: #d1fae5;
+  --color-secondary: #10b981;
+}
+
+/* Applica i colori personalizzati */
+.btn-primary {
+  background-color: var(--color-primary);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.bg-primary {
+  background-color: var(--color-primary);
+}
+
+.bg-primary-light {
+  background-color: var(--color-primary-light);
+}
+
+.border-primary {
+  border-color: var(--color-primary);
+}
+
+.ring-primary {
+  --tw-ring-color: var(--color-primary);
+}
+
+/* Override Tailwind colors with custom variables */
+.bg-emerald-600,
+.hover\:bg-emerald-700:hover,
+.bg-emerald-50,
+.bg-emerald-100,
+.text-emerald-600,
+.border-emerald-500,
+.focus\:ring-emerald-500:focus,
+.focus\:border-emerald-500:focus {
+  background-color: var(--color-primary) !important;
+  color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+}
+
+.hover\:bg-emerald-700:hover {
+  background-color: var(--color-primary-hover) !important;
+}
+
+.bg-emerald-50 {
+  background-color: var(--color-primary-light) !important;
+}
+
+.bg-emerald-100 {
+  background-color: var(--color-primary-light) !important;
+  opacity: 0.8;
+}
+
+.text-emerald-600 {
+  color: var(--color-primary) !important;
+}
