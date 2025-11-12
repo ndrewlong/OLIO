@@ -11,8 +11,11 @@ const defaultBranding: BrandingSettings = {
   appName: 'OLIO',
   appInitials: 'O',
   tagline: 'Gestione Business',
-  primaryColor: '#059669',
-  secondaryColor: '#10b981'
+  primaryColor: '#059669', // emerald-600
+  primaryHover: '#047857', // emerald-700
+  primaryLight: '#d1fae5', // emerald-50
+  textOnPrimary: '#ffffff', // bianco
+  secondaryColor: '#10b981'  // emerald-500
 };
 
 const BrandingContext = createContext<BrandingContextType>({
