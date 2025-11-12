@@ -33,6 +33,9 @@ export interface BrandingSettings {
   appInitials: string;
   tagline: string;
   primaryColor: string;
+  primaryHover: string;
+  primaryLight: string;
+  textOnPrimary: string; // Testo sui pulsanti primari
   secondaryColor: string;
 }
 
